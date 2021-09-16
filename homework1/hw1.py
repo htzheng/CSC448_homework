@@ -1,119 +1,111 @@
-#!/usr/bin/python3
-
+import sys
 import numpy as np
-import argparse
-
-def load_weights(path):
-    labels = []
-    words = []
-    with open(path, 'r') as f:
-        for line in f.readlines():
-            line = line.split('\n')[0]
-            k, w = line.split(' ')
-            l, a, b = k.split('_')
-            if l == 'E':
-                words.append(b)
-            else:
-                labels.append(a)
-    labels = {k: i for i, k in enumerate(sorted(set(labels)))}
-    words = {k: i for i, k in enumerate(sorted(set(words)))}
-
-    emission = np.full((len(labels), len(words)), 0.0)
-    transition = np.full((len(labels), len(labels)), 0.0)
-
-    with open(path, 'r') as f:
-        for line in f.readlines():
-            line = line.split('\n')[0]
-            k, w = line.split(' ')
-            l, a, b = k.split('_')
-            if l == 'E':
-                emission[labels[a], words[b]] = float(w)
-            elif l == 'T':
-                transition[labels[a], labels[b]] = float(w)
-            else:
-                raise NotImplementedError
-    return emission, transition, labels, words
-
-
-
-def load_data(path):
-    input_data = []
-    gt_tag = []
-    with open(path, 'r') as f:
-        for line in f.readlines():
-            line = line.split(' \n')[0]
-            N = int(line.split(' ')[0])
-            X = line.split(' ')[1::2]
-            Y = line.split(' ')[2::2]
-            X, Y = list(zip(*[[x, y] for x, y in zip(X, Y)]))
-            input_data.append({'X': X, 'Y': Y, 'N': N})
-            gt_tag.append(Y)
-    return input_data, gt_tag
-
-
-
-def decoding(emission, transition, label_to_idx, word_to_idx, data, verbose=True):
-    idx_to_label = {v: k for k, v in label_to_idx.items()}
-    idx_to_word = {v: k for k, v in word_to_idx.items()}
-    T = len(emission)
-    results = []
-    for sidx, sample in enumerate(data):
-
-        N = sample["N"]
-        cost = np.zeros((N, T))
-        for i in range(N):
-            word = sample["X"][i]
-            if i == 0 and word in word_to_idx:
-                x = word_to_idx[word]
-                cost[i] = np.max(emission[:, None, x], axis=0)
-            elif i == 0 and word not in word_to_idx:
-                pass
-            elif word in word_to_idx:
-                x = word_to_idx[word]
-                cost[i] = np.max(cost[i - 1,:,None] + emission[None,:,x] + transition, axis=0)
-            else:
-                cost[i] = np.max(cost[i - 1,:,None] + transition, axis=0)
-
-        out = []
-        max_score = np.max(cost[N-1])
-        t = np.argmax(cost[N-1])
-        out.append(t)
-        for i in list(range(N-1))[::-1]:
-            word = sample["X"][i]
-            if word in word_to_idx:
-                x = word_to_idx[word]
-                t = np.argmax(emission[:,x] + transition[:,t])
-            else:
-                t = np.argmax(transition[:, t])
-            out.append(t)
-
-        result =  [idx_to_label[i] for i in out][::-1]
-        if verbose:
-            print(' '.join([str(max_score)]+result))
-        results.append(result)
-    return results
-
-def evaluate(pred_tag, gt_tag):
-    accuracy = 0.0
-    for pred, gt in zip(pred_tag, gt_tag):
-        correct_count = 0
-        for a, b in zip(pred, gt):
-            if a == b:
-                correct_count += 1
-        accuracy += float(correct_count)/len(pred)
-    accuracy = accuracy / len(pred_tag)
-    return accuracy
+import torch
+NINF = -1e9
+HAS_LABEL = False
+OO, XX = 0., 0.
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Homework 1')
-    parser.add_argument('weights', type=str)
-    parser.add_argument('data', type=str)
+    weights = dict()
+    with open(sys.argv[1], 'r') as f:
+        for line in f:
+            key, value = line.strip().split(' ')
+            weights[key] = float(value)
 
-    args = parser.parse_args()
+    data_ = []
+    with open(sys.argv[2], 'r') as f:
+        for line in f:
+            line = line.strip().split(' ')
+            data_.append(line[1:])
 
-    emission, transition, labels, words = load_weights(args.weights)
-    input_data, gt_tag = load_data(args.data)
+    # get all tags and words
+    pos = set()
+    words = set()
+    for item in weights.keys():
+        if item.startswith('T_'):
+            _, a, b = item.split('_')
+            pos.add(a)
+            pos.add(b)
+        elif item.startswith('E_'):    
+            _, a, w = item.split('_')
+            pos.add(a)
+            words.add(w)
+    pos, words = list(pos), list(words)
+    pos_idx = {name:idx for (idx,name) in enumerate(pos)}
+    words_idx = {name:idx for (idx,name) in enumerate(words)}
 
-    pred_tag = decoding(emission, transition, labels, words, input_data)
-    acc = evaluate(pred_tag, gt_tag)
-    print('accuracy :{}'.format(acc))
+    # init trans and emis matrix
+    T = len(pos) + 1     # add START symbol in the end
+    W = len(words) + 1   # add an out-of-vocabulary symbol in the end
+    Trans = torch.zeros((T, T), dtype=torch.float32)
+    Emis = torch.zeros((T, W), dtype=torch.float32)
+    Trans[:,-1] = NINF
+    Emis[-1,:] = NINF  # init trans and emis for START symbol
+
+    for item in weights.keys():
+        if item.startswith('T_'):
+            _, a, b = item.split('_')
+            Trans[pos_idx[a], pos_idx[b]] = weights[item]
+        elif item.startswith('E_'):    
+            _, a, w = item.split('_')
+            Emis[pos_idx[a], words_idx[w]] = weights[item]
+
+    # convert data to index
+    data = []
+    data_idx = []
+    data_label = []
+    for data_i in data_:
+        if not HAS_LABEL:
+            seq, label = data_i, None
+        else:
+            seq, label = data_i[0::2], data_i[1::2]
+        data.append(seq)
+        data_idx.append([words_idx.get(w, W-1) for w in seq])  # if word not found in word list, return the last index
+        data_label.append(label)
+
+    def veterbi_decode(seq, label):
+        global OO, XX
+
+        N = len(seq)
+        delta = NINF * torch.ones((N + 1, T), dtype=torch.float32)
+        pre = torch.zeros((N + 1, T), dtype=torch.int32)
+
+        def get_tag(pre, i, t):
+            return get_tag(pre, i-1, pre[i,t]) + [t] if i>0 else []
+
+        delta[0, T-1] = 0
+        for i in range(1, N+1):
+            x = words_idx.get(seq[i-1], W-1)
+            for t in range(T):
+                ## slow version
+                # for tp in range(T):
+                #     value = delta[i-1, tp] + Trans[tp,t] + Emis[t, x]
+                #     if value >= delta[i, t]:
+                #         delta[i, t] = value
+                #         pre[i,t] = tp
+
+                ## fast version
+                values = delta[i-1,:] + Trans[:,t] + Emis[t, x]
+                delta[i,t] = torch.max(values)
+                pre[i,t] = torch.argmax(values)
+
+        max_idx = torch.argmax(delta[N, :])
+        max_value = delta[N, max_idx]
+        tag_idx = get_tag(pre, N, max_idx)
+        tag = [pos[idx] for idx in tag_idx]
+        
+        if label is not None:
+            oo = sum([x==y for (x,y) in zip(tag, label)])
+            xx = sum([x!=y for (x,y) in zip(tag, label)])
+            OO+=oo
+            XX+=xx
+            print(label)
+            print(OO/(OO+XX))
+        else:
+            oo, xx = 0, 0
+        return " ".join([str(max_value.item())] + tag), oo, xx
+
+    for seq, label in zip(data, data_label):
+        s, oo, xx = veterbi_decode(seq, label)
+        print(s)
+        

@@ -1,0 +1,23 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "console": "integratedTerminal",
+
+            "cwd": "${workspaceFolder}/homework1",
+            "program": "hw1.py",
+            // "program": "hw1_jiean.py",
+            "args": [
+                "weights", "data",
+                // "weights", "data_anno",
+                // "pos/train.weights", "pos/test",
+            ]
+        }
+    ]
+}
