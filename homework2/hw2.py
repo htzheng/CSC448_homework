@@ -1,6 +1,5 @@
 import sys
 import torch
-from tqdm import tqdm
 NINF = -1e9
 HAS_LABEL = False
 OO, XX = 0., 0.
