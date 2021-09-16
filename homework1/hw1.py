@@ -1,5 +1,4 @@
 import sys
-import numpy as np
 import torch
 NINF = -1e9
 HAS_LABEL = False
