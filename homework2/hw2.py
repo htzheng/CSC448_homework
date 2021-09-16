@@ -2,7 +2,7 @@ import sys
 import torch
 from tqdm import tqdm
 NINF = -1e9
-HAS_LABEL = True
+HAS_LABEL = False
 OO, XX = 0., 0.
 
 if __name__ == '__main__':
@@ -107,5 +107,5 @@ if __name__ == '__main__':
 
     for seq, label in zip(data, data_label):
         s = veterbi_decode(seq, label)
-        # print(s)
+        print(s)
         
