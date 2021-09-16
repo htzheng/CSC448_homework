@@ -1,7 +1,8 @@
 import sys
 import torch
+from tqdm import tqdm
 NINF = -1e9
-HAS_LABEL = False
+HAS_LABEL = True
 OO, XX = 0., 0.
 
 if __name__ == '__main__':
@@ -35,7 +36,7 @@ if __name__ == '__main__':
 
     # init trans and emis matrix
     T = len(pos) + 1     # add START symbol in the end
-    W = len(words) + 1   # add an out-of-vocabulary symbol in the end
+    W = len(words) + 1   # add an out-of-vocabulary word in the end
     Trans = torch.zeros((T, T), dtype=torch.float32)
     Emis = torch.zeros((T, W), dtype=torch.float32)
     Trans[:,-1] = NINF
@@ -98,13 +99,13 @@ if __name__ == '__main__':
             xx = sum([x!=y for (x,y) in zip(tag, label)])
             OO+=oo
             XX+=xx
-            print(label)
+            # print(label)
             print(OO/(OO+XX))
         else:
             oo, xx = 0, 0
-        return " ".join([str(max_value.item())] + tag), oo, xx
+        return " ".join([str(max_value.item())] + tag)
 
     for seq, label in zip(data, data_label):
-        s, oo, xx = veterbi_decode(seq, label)
-        print(s)
+        s = veterbi_decode(seq, label)
+        # print(s)
         

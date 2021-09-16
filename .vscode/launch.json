@@ -10,13 +10,13 @@
             "request": "launch",
             "console": "integratedTerminal",
 
-            "cwd": "${workspaceFolder}/homework1",
-            "program": "hw1.py",
+            "cwd": "${workspaceFolder}/homework2",
+            "program": "hw2.py",
             // "program": "hw1_jiean.py",
             "args": [
-                "weights", "data",
+                // "weights", "data",
                 // "weights", "data_anno",
-                // "pos/train.weights", "pos/test",
+                "pos/train.weights", "pos/test",
             ]
         }
     ]
