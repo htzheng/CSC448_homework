@@ -1,0 +1,10 @@
+In homework1, I implemented a perceptron decoder using Numpy. The implementation is based on the Viterbi Decoding Algorithm. However, there are some differences:
+
+1. I leverage a start token to simplify the initialization of the dynamic programming at time step i=0.
+2. I define an out-of-vocabulary word so that the model can handle the out-of-vocabulary exception
+3. I define the transmission and emission matrix and leverage PyTorch matrix operation to improve the speed (Line 86). By computing the inner loop (T') with matrix operation, the inference speed becomes pretty fast.
+
+The accuracy on the test file is 94.45%
+
+The command for running the perceptron decoder is
+python ./hw1.py weights data

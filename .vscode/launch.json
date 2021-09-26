@@ -10,14 +10,31 @@
             "request": "launch",
             "console": "integratedTerminal",
 
-            "cwd": "${workspaceFolder}/homework2",
-            "program": "hw2.py",
-            // "program": "hw1_jiean.py",
+            // "cwd": "${workspaceFolder}/homework1",
+            // "program": "hw1.py",
+            // "args": [
+            //     "weights", "data",
+            // ]
+
+            // "cwd": "${workspaceFolder}/homework2",
+            // "program": "hw2.py",
+            // "args": [
+            //     "weights", "data",
+            //     // "weights", "data_anno",
+            //     // "pos/train.weights", "pos/test",
+            // ]
+
+            "cwd": "${workspaceFolder}/homework3",
+            "program": "crf.py",
             "args": [
-                "weights", "data",
+                // "train", "train",
+                // "pos/train", "pos/test",
+                "pos/train", "pos/test",
+                "1",
                 // "weights", "data_anno",
                 // "pos/train.weights", "pos/test",
             ]
+
         }
     ]
 }
