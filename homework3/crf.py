@@ -117,18 +117,14 @@ def forward_backward_log_batch(x, y, trans, emis, device='cpu'):
     ''' forward batched '''
     log_a = torch.zeros((B, N, T), dtype=torch.float32, device=device)
     log_a[:,0,:].fill_(NINF)
-    log_a[:,0,START_IDX].fill_(0)
-
     for i in range(1, N):
-        x_i = x[:,i]
-        log_a[:,i,:] = (emis_logp[:,x_i].transpose(0,1).unsqueeze(1) + log_a[:,i-1,:].unsqueeze(2) + trans_logp.unsqueeze(0)).logsumexp(1)
+        log_a[:,i,:] = (emis_logp[:,x[:,i]].transpose(0,1).unsqueeze(1) + log_a[:,i-1,:].unsqueeze(2) + trans_logp.unsqueeze(0)).logsumexp(1)
 
     ''' backward batched '''
     log_b = torch.zeros((B, N, T), dtype=torch.float32, device=device)
     log_b[:,N-1,:] = - log_a[:,N-1,:].logsumexp(1).unsqueeze(1).expand_as(log_b[:,N-1,:])
     for i in range(N-2,-1,-1):
-        x_i1 = x[:,i+1]
-        log_b[:,i,:] = (emis_logp[:,x_i1].transpose(0,1).unsqueeze(-1) + trans_logp.transpose(0,1).unsqueeze(0) + log_b[:,i+1,:].unsqueeze(-1)).logsumexp(1)
+        log_b[:,i,:] = (emis_logp[:,x[:,i+1]].transpose(0,1).unsqueeze(-1) + trans_logp.transpose(0,1).unsqueeze(0) + log_b[:,i+1,:].unsqueeze(-1)).logsumexp(1)
     ''' marginal '''
     log_marginal = log_a+log_b
 

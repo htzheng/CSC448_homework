@@ -12,13 +12,13 @@ Other implementation details include:
 - The training settings are: lr=0.002, max_iter=50000, batch_size=500, l1_weight=0.01. Training on a single GPU takes 8.5 mins (50000 iterations)
 
 Results and observations:
-- without l1 regularization, the marginal prediction accuracy is 92.628% on test set and 92.159% on training set. However, using Viterbi decoding (not recommended because accuracy is lower), the accuracy is 87.475% on test set and is lower than the training set accuracy (92.159%), indicating overfitting.  The final output of the program is:
-    iteration [50000/50000], elapsed time [00:08:25], decode acc: [0.8747516870498657], forward-backward acc: [0.9262831211090088]
-    training decode acc: [0.9215907454490662], training forward-backward acc: [0.9262831211090088]
-
 - with l1 regularization, the marginal prediction accuracy is boosted to 94.052% on test set and 94.052% on training set. Using Viterbi decoding (not recommended because accuracy is lower), the accuracy is 93.232% on test set and 96.931% on training set. The final output of the program is:
     iteration [50000/50000], elapsed time [00:09:09], decode acc: [0.9323261976242065], forward-backward acc: [0.9405215382575989]
     training decode acc: [0.9693161845207214], training forward-backward acc: [0.9405215382575989]
+
+- without l1 regularization, the marginal prediction accuracy is 92.628% on test set and 92.159% on training set. However, using Viterbi decoding (not recommended because accuracy is lower), the accuracy is 87.475% on test set and is lower than the training set accuracy (92.159%), indicating overfitting.  The final output of the program is:
+    iteration [50000/50000], elapsed time [00:08:25], decode acc: [0.8747516870498657], forward-backward acc: [0.9262831211090088]
+    training decode acc: [0.9215907454490662], training forward-backward acc: [0.9262831211090088]
 
 - in comparison, weights generated from the expected word count give accuracy 92.181% (Viterbi decoding method) and 91.631% (marginal method) on test set.
 
