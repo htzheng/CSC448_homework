@@ -1,6 +1,0 @@
-ignore date message-id received status
-
-set append
-set crt=20
-set tellme
-set ask
