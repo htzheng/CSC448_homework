@@ -4,7 +4,7 @@ In homework3, I implemented the CRF training. Specifically,
    min  -sum_i alpha[i]*beta[i]
 - To avoid overfitting, I additionally added a small l1 regularization on the transmission and emission matrices:
    l1_loss = l1_weight * (|transmission|_1 + |emission|_1)
-- To get some inturation on to which extend training would help, I generated a fixed transmission and emission matrices using the expected word count on training data to compute the accuracy. Results shows that training can improve accuracy from the expected word cound method from 92.181% to 94.052%.
+- To get some intuition on to which extend training would help, I generated a fixed transmission and emission matrices using the expected word count on training data to compute the accuracy. Results shows that training can improve accuracy from the expected word cound method from 92.181% to 94.052%.
 - The code is efficient and the training takes 8.5 mins to reach the accuracy of 94.052% on test set
 
 Other implementation details include:
